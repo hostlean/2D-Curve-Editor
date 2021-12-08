@@ -26,6 +26,13 @@ namespace Curve.Scripts.Editor
                 _path.ToggleClosed();
                 SceneView.RepaintAll();
             }
+
+            var autoSetControlPoints = GUILayout.Toggle(_path.AutoSetControlPoints, "Auto Set Control Points");
+
+            if (autoSetControlPoints != _path.AutoSetControlPoints)
+            {
+                
+            }
         }
 
         private void OnEnable()
