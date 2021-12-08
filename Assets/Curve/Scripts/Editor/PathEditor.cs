@@ -10,6 +10,24 @@ namespace Curve.Scripts.Editor
         private PathCreator _creator;
         private Path _path;
 
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+
+            if (GUILayout.Button("Create New"))
+            {
+                _creator.CreatePath();
+                _path = _creator.Path;
+                SceneView.RepaintAll();
+            }
+
+            if (GUILayout.Button("Toggle Closed"))
+            {
+                _path.ToggleClosed();
+                SceneView.RepaintAll();
+            }
+        }
+
         private void OnEnable()
         {
             _creator = (PathCreator)target;

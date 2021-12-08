@@ -8,8 +8,9 @@ namespace Curve
     public class Path
     {
         [SerializeField] [HideInInspector] private List<Vector2> points;
-        
-        public int NumberOfSegments => (points.Count - 4) / 3 + 1;
+        [SerializeField] [HideInInspector] private bool _isClosed;
+
+        public int NumberOfSegments => points.Count / 3;
 
         public int NumberOfPoints => points.Count;
 
@@ -45,37 +46,59 @@ namespace Curve
                 points[segmentIndex * 3], 
                 points[segmentIndex * 3 + 1], 
                 points[segmentIndex * 3 + 2],
-                points[segmentIndex * 3 + 3]
+                points[LoopIndex(segmentIndex * 3 + 3)]
             };
         }
 
         public void MovePoint(int pointIndex, Vector2 targetPos)
         {
-            Vector2 deltaMove = targetPos - points[pointIndex];
+            var deltaMove = targetPos - points[pointIndex];
             points[pointIndex] = targetPos;
 
             if (pointIndex % 3 == 0)
             {
-                if(pointIndex+1 < points.Count)
-                    points[pointIndex + 1] += deltaMove;
+                if(pointIndex+1 < points.Count || _isClosed)
+                    points[LoopIndex(pointIndex + 1)] += deltaMove;
                 
-                if(pointIndex-1 >= 0)
-                    points[pointIndex - 1] += deltaMove;
+                if(pointIndex-1 >= 0 || _isClosed)
+                    points[LoopIndex(pointIndex - 1)] += deltaMove;
             }
             else
             {
-                bool nextPointIsAnchor = (pointIndex + 1) % 3 == 0;
-                int correspondingControlIndex = (nextPointIsAnchor) ? pointIndex + 2 : pointIndex - 2;
-                int anchorIndex = (nextPointIsAnchor) ? pointIndex + 1 : pointIndex - 1;
+                var nextPointIsAnchor = (pointIndex + 1) % 3 == 0;
+                var correspondingControlIndex = (nextPointIsAnchor) ? pointIndex + 2 : pointIndex - 2;
+                var anchorIndex = (nextPointIsAnchor) ? pointIndex + 1 : pointIndex - 1;
 
-                if (correspondingControlIndex < 0 || correspondingControlIndex >= points.Count) return;
-                
-                float distance = (points[anchorIndex] - points[correspondingControlIndex]).magnitude;
-                Vector2 direction = (points[anchorIndex] - targetPos).normalized;
+                if ((correspondingControlIndex < 0 || correspondingControlIndex >= points.Count) && !_isClosed) return;
+                var distance = (points[LoopIndex(anchorIndex)] - points[LoopIndex(correspondingControlIndex)]).magnitude;
+                var direction = (points[LoopIndex(anchorIndex)] - targetPos).normalized;
 
-                points[correspondingControlIndex] = points[anchorIndex] + direction * distance;
+                points[LoopIndex(correspondingControlIndex)] = points[LoopIndex(anchorIndex)] + direction * distance;
             }
             
+        }
+
+        public void ToggleClosed()
+        {
+            _isClosed = !_isClosed;
+
+            if (_isClosed)
+            {
+                var lastPointIndex = points.Count - 1;
+                var secondFromLastIndex = points.Count - 2;
+            
+                points.Add(points[lastPointIndex]*2 - points[secondFromLastIndex]);
+                points.Add(points[0]*2 - points[1]);
+            }
+            else
+            {
+                points.RemoveRange(points.Count-2,2);
+            }
+        }
+
+        private int LoopIndex(int i)
+        {
+            return (i + points.Count) % points.Count;
         }
 
        
