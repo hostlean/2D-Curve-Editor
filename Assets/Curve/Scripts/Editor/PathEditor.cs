@@ -89,6 +89,8 @@ namespace Curve.Scripts.Editor
             DeleteSegmentInput(guiEvent, mousePos);
 
             SplitSegmentCheck(guiEvent, mousePos);
+            
+            HandleUtility.AddDefaultControl(0);
            
         }
 
