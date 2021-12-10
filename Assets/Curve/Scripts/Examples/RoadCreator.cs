@@ -56,8 +56,9 @@ namespace Curve.Scripts.Examples
                 verts[vertexIndex + 1] = points[i] -left * roadWidth * .5f;
 
                 var completionPercent = i / (float)(points.Length - 1);
-                uvs[vertexIndex] = new Vector2(0, completionPercent);
-                uvs[vertexIndex + 1] = new Vector2(1, completionPercent);
+                var v = 1 - Mathf.Abs(2 * completionPercent - 1);
+                uvs[vertexIndex] = new Vector2(0, v);
+                uvs[vertexIndex + 1] = new Vector2(1, v);
                 
 
                 if (i < points.Length - 1 || isClosed)
