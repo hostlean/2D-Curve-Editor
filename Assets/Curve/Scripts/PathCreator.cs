@@ -5,7 +5,8 @@ namespace Curve
 {
     public class PathCreator : MonoBehaviour
     {
-        public Path Path { get; private set; }
+        [HideInInspector]
+        public Path path;
 
         private Transform _transform;
 
@@ -16,7 +17,7 @@ namespace Curve
 
         public void CreatePath()
         {
-            Path = new Path(transform.position);
+            path = new Path(transform.position);
         }
     }
 }

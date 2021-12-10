@@ -14,36 +14,43 @@ namespace Curve.Scripts.Editor
         {
             base.OnInspectorGUI();
 
-            if (GUILayout.Button("Create New"))
+            EditorGUI.BeginChangeCheck();
+            
+            if (GUILayout.Button("Create new"))
             {
+                Undo.RecordObject(_creator,"Create new");
                 _creator.CreatePath();
-                _path = _creator.Path;
-                SceneView.RepaintAll();
+                _path = _creator.path;
             }
 
-            if (GUILayout.Button("Toggle Closed"))
+            var isClosed = GUILayout.Toggle(_path.IsClosed, "Closed");
+            if (isClosed != _path.IsClosed)
             {
-                _path.ToggleClosed();
-                SceneView.RepaintAll();
+                Undo.RecordObject(_creator, "Toggle closed");
+                _path.IsClosed = isClosed;
             }
 
             var autoSetControlPoints = GUILayout.Toggle(_path.AutoSetControlPoints, "Auto Set Control Points");
 
             if (autoSetControlPoints != _path.AutoSetControlPoints)
             {
-                
+                Undo.RecordObject(_creator, "Toggle auto set controls");
+                _path.AutoSetControlPoints = autoSetControlPoints;
             }
+            
+            if(EditorGUI.EndChangeCheck())
+                SceneView.RepaintAll();
         }
 
         private void OnEnable()
         {
             _creator = (PathCreator)target;
-            if (_creator.Path == null)
+            if (_creator.path == null)
             {
                 _creator.CreatePath();
             }
 
-            _path = _creator.Path;
+            _path = _creator.path;
         }
 
         private void Input()
@@ -56,6 +63,30 @@ namespace Curve.Scripts.Editor
             {
                 Undo.RecordObject(_creator, "Add segment");
                 _path.AddSegment(mousePos);
+            }
+
+            if (guiEvent.type == EventType.MouseDown && guiEvent.button == 1)
+            {
+                var minDistanceToAnchor = .05f;
+                var closestAnchorIndex = -1;
+
+                for (var i = 0; i < _path.NumberOfPoints; i+=3)
+                {
+                    var distance = Vector2.Distance(mousePos, _path[i]);
+                    if (distance < minDistanceToAnchor)
+                    {
+                        minDistanceToAnchor = distance;
+                        closestAnchorIndex = i;
+                    }
+                }
+
+                if (closestAnchorIndex != -1)
+                {
+                    Undo.RecordObject(_creator, "Delete segment");
+                    _path.DeleteSegment(closestAnchorIndex);
+                }
+                
+               
             }
         }
 

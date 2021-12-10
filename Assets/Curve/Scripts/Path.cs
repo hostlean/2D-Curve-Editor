@@ -32,6 +32,42 @@ namespace Curve
             }
         }
 
+        public bool IsClosed
+        {
+            get => _isClosed;
+
+            set
+            {
+                if (_isClosed == value) return;
+                
+                _isClosed = value;
+
+                if (_isClosed)
+                {
+                    var lastPointIndex = points.Count - 1;
+                    var secondFromLastIndex = points.Count - 2;
+            
+                    points.Add(points[lastPointIndex]*2 - points[secondFromLastIndex]);
+                    points.Add(points[0]*2 - points[1]);
+
+                    if (_autoSetControlPoints)
+                    {
+                        AutoSetAnchorControlPoints(0);
+                        AutoSetAnchorControlPoints(points.Count - 3);
+                    }
+                }
+                else
+                {
+                    points.RemoveRange(points.Count-2,2);
+
+                    if (_autoSetControlPoints)
+                    {
+                        AutoSetStartAndEndControls();
+                    }
+                }
+            }
+        }
+
         public Path(Vector2 center)
         {
             points = new List<Vector2>
@@ -60,6 +96,34 @@ namespace Curve
             }
         }
 
+        public void SplitSegment(Vector2 anchorPos, int segmentIndex)
+        {
+            
+        }
+        
+
+        public void DeleteSegment(int anchorIndex)
+        {
+            if (NumberOfSegments <= 2 && (_isClosed || NumberOfSegments <= 1)) return;
+            if (anchorIndex == 0)
+            {
+                if (_isClosed)
+                {
+                    points[points.Count - 1] = points[2];
+                }
+
+                points.RemoveRange(0, 3);
+            }
+            else if (anchorIndex == points.Count - 1 && !_isClosed)
+            {
+                points.RemoveRange(anchorIndex - 2, 3);
+            }
+            else
+            {
+                points.RemoveRange(anchorIndex - 1, 3);
+            }
+        }
+
         public Vector2[] GetPointsInSegment(int segmentIndex)
         {
             return new Vector2[]
@@ -74,6 +138,8 @@ namespace Curve
         public void MovePoint(int pointIndex, Vector2 targetPos)
         {
             var deltaMove = targetPos - points[pointIndex];
+
+            if (pointIndex % 3 != 0 && _autoSetControlPoints) return;
             points[pointIndex] = targetPos;
 
             if (_autoSetControlPoints)
@@ -83,10 +149,10 @@ namespace Curve
 
             if (pointIndex % 3 == 0)
             {
-                if(pointIndex+1 < points.Count || _isClosed)
+                if (pointIndex + 1 < points.Count || _isClosed)
                     points[LoopIndex(pointIndex + 1)] += deltaMove;
-                
-                if(pointIndex-1 >= 0 || _isClosed)
+
+                if (pointIndex - 1 >= 0 || _isClosed)
                     points[LoopIndex(pointIndex - 1)] += deltaMove;
             }
             else
@@ -95,42 +161,16 @@ namespace Curve
                 var correspondingControlIndex = (nextPointIsAnchor) ? pointIndex + 2 : pointIndex - 2;
                 var anchorIndex = (nextPointIsAnchor) ? pointIndex + 1 : pointIndex - 1;
 
-                if ((correspondingControlIndex < 0 || correspondingControlIndex >= points.Count) && !_isClosed) return;
-                var distance = (points[LoopIndex(anchorIndex)] - points[LoopIndex(correspondingControlIndex)]).magnitude;
+                if ((correspondingControlIndex < 0 || correspondingControlIndex >= points.Count) &&
+                    !_isClosed) return;
+                var distance = (points[LoopIndex(anchorIndex)] - points[LoopIndex(correspondingControlIndex)])
+                    .magnitude;
                 var direction = (points[LoopIndex(anchorIndex)] - targetPos).normalized;
 
-                points[LoopIndex(correspondingControlIndex)] = points[LoopIndex(anchorIndex)] + direction * distance;
+                points[LoopIndex(correspondingControlIndex)] =
+                    points[LoopIndex(anchorIndex)] + direction * distance;
             }
-            
-        }
 
-        public void ToggleClosed()
-        {
-            _isClosed = !_isClosed;
-
-            if (_isClosed)
-            {
-                var lastPointIndex = points.Count - 1;
-                var secondFromLastIndex = points.Count - 2;
-            
-                points.Add(points[lastPointIndex]*2 - points[secondFromLastIndex]);
-                points.Add(points[0]*2 - points[1]);
-
-                if (_autoSetControlPoints)
-                {
-                    AutoSetAnchorControlPoints(0);
-                    AutoSetAnchorControlPoints(points.Count - 3);
-                }
-            }
-            else
-            {
-                points.RemoveRange(points.Count-2,2);
-
-                if (_autoSetControlPoints)
-                {
-                    AutoSetStartAndEndControls();
-                }
-            }
         }
 
         private void AutoSetAllEffectedControlPoints(int updatedAnchorIndex)
@@ -160,12 +200,14 @@ namespace Curve
             var direction = Vector2.zero;
 
             var neighbourDistances = new float[2];
+            
             if (anchorIndex - 3 >= 0 || _isClosed)
             {
                 var offset = points[LoopIndex(anchorIndex - 3)] - anchorPos;
                 direction += offset.normalized;
                 neighbourDistances[0] = offset.magnitude;
             }
+            
             if (anchorIndex - 3 >= 0 || _isClosed)
             {
                 var offset = points[LoopIndex(anchorIndex + 3)] - anchorPos;

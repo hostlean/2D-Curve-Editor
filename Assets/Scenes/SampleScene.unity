@@ -152,6 +152,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d08b7bb0bc2042c69b799ee49ceb4b2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  path:
+    points:
+    - {x: -1.0283867, y: 0.46378288}
+    - {x: -0.5283867, y: 0.9637829}
+    - {x: 0.4716133, y: -0.036217123}
+    - {x: 0.9716133, y: 0.46378288}
+    _isClosed: 0
+    _autoSetControlPoints: 0
 --- !u!4 &690724657
 Transform:
   m_ObjectHideFlags: 0
