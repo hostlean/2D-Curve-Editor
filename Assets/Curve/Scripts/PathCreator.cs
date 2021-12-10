@@ -1,7 +1,6 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace Curve
+namespace Curve.Scripts
 {
     public class PathCreator : MonoBehaviour
     {

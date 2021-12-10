@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Curve
+namespace Curve.Scripts
 {
     [Serializable]
     public class Path
@@ -79,6 +79,8 @@ namespace Curve
             };
         }
 
+        #region Segment Methods
+
         public void AddSegment(Vector2 anchorPos)
         {
             var lastPointIndex = points.Count - 1;
@@ -143,6 +145,58 @@ namespace Curve
                 points[segmentIndex * 3 + 2],
                 points[LoopIndex(segmentIndex * 3 + 3)]
             };
+        }
+
+        #endregion
+
+
+        public Vector2[] CalculateEvenlySpacedPoints(float spacing, float resolution = 1)
+        {
+            var evenlySpacedPoints = new List<Vector2>();
+            
+            evenlySpacedPoints.Add(points[0]);
+            var previousPoint = points[0];
+
+            var distanceSinceLastEvenPoint = 0f;
+
+            for (var segmentIndex = 0; segmentIndex < NumberOfSegments; segmentIndex++)
+            {
+                var p = GetPointsInSegment(segmentIndex);
+
+                var controlNetLength = 
+                    Vector2.Distance(p[0], p[1]) + 
+                    Vector2.Distance(p[1], p[2]) +
+                    Vector2.Distance(p[2], p[3]);
+
+                var estimatedCurveLength = Vector2.Distance(p[0], p[3]) + controlNetLength / 2f;
+
+                int divisions = Mathf.CeilToInt(estimatedCurveLength * resolution * 10);
+
+                var t = 0f;
+                while (t <= 1)
+                {
+                    t += 1f/divisions;
+                    var pointOnCurve = Bezier.EvaluateCubic(p[0], p[1], p[2], p[3], t);
+                    distanceSinceLastEvenPoint += Vector2.Distance(previousPoint, pointOnCurve);
+
+                    while (distanceSinceLastEvenPoint >= spacing)
+                    {
+                        var overshootDistance = distanceSinceLastEvenPoint - spacing;
+                        
+                        var newEvenlySpacedPoint =
+                            pointOnCurve + (previousPoint - pointOnCurve).normalized * overshootDistance;
+                        evenlySpacedPoints.Add(newEvenlySpacedPoint);
+                        
+                        distanceSinceLastEvenPoint = overshootDistance;
+
+                        previousPoint = newEvenlySpacedPoint;
+                    }
+                    
+                    previousPoint = pointOnCurve;
+                }
+            }
+
+            return evenlySpacedPoints.ToArray();
         }
 
         public void MovePoint(int pointIndex, Vector2 targetPos)
