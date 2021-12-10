@@ -170,7 +170,7 @@ namespace Curve.Scripts
 
                 var estimatedCurveLength = Vector2.Distance(p[0], p[3]) + controlNetLength / 2f;
 
-                int divisions = Mathf.CeilToInt(estimatedCurveLength * resolution * 10);
+                var divisions = Mathf.CeilToInt(estimatedCurveLength * resolution * 10);
 
                 var t = 0f;
                 while (t <= 1)

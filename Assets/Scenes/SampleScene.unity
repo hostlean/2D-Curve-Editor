@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 690724657}
   - component: {fileID: 690724656}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: Path Creator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -154,16 +154,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   path:
     points:
-    - {x: -1, y: 0}
-    - {x: -0.5, y: 0.5}
-    - {x: 0.9709394, y: -0.5171251}
+    - {x: -1.8567076, y: -0.33162886}
+    - {x: -2.1486936, y: 0.18092787}
+    - {x: -2.1124654, y: 0.7403035}
+    - {x: -1.8311121, y: 1.2587731}
+    - {x: -1.5089447, y: 1.8524526}
+    - {x: -0.75354224, y: 1.5765097}
+    - {x: -0.11769678, y: 1.348589}
+    - {x: 0.70671606, y: 1.0530756}
+    - {x: 1.548212, y: 0.68297}
     - {x: 1, y: 0}
+    - {x: 0.6627251, y: -0.4201817}
+    - {x: 0.5669382, y: 0.60984504}
+    - {x: 0.041208625, y: 0.49188125}
+    - {x: -0.5284724, y: 0.36405557}
+    - {x: -0.08656794, y: -0.43559098}
+    - {x: -0.6704113, y: -0.4339159}
     _isClosed: 0
     _autoSetControlPoints: 0
-  anchorCol: {r: 1, g: 0, b: 0, a: 1}
-  cpCol: {r: 1, g: 1, b: 1, a: 1}
-  segmentCol: {r: 0, g: 1, b: 0, a: 1}
-  selectedSegmentCol: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  anchorCol: {r: 1, g: 1, b: 1, a: 1}
+  cpCol: {r: 0.29622638, g: 1, b: 0.7583332, a: 1}
+  segmentCol: {r: 0, g: 1, b: 0.17839122, a: 1}
+  selectedSegmentCol: {r: 0.98973984, g: 1, b: 0.015686274, a: 1}
   anchorDiameter: 0.1
   controlPointDiameter: 0.075
   displayControlPoints: 1

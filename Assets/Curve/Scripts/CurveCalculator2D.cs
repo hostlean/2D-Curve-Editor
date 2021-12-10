@@ -32,7 +32,7 @@ namespace Curve.Scripts
                    Mathf.Pow(time, 2) * point3;
         }
 
-        public static Vector2 CubicPolynomial(Vector2 point1, Vector2 point2, Vector2 point3, Vector2 point4, float time)
+        public static Vector2 CubicPolynomial2D(Vector2 point1, Vector2 point2, Vector2 point3, Vector2 point4, float time)
         {
             return Mathf.Pow(1 - time, 3) * point1 + 
                    3 * Mathf.Pow(1 - time, 2) * time * point2 +
