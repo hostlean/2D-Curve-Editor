@@ -8,7 +8,7 @@ namespace Curve.Scripts.Editor
     public class PathEditor : UnityEditor.Editor
     {
         private PathCreator _creator;
-        private Path _path;
+        private Path Path => _creator.path;
 
         private const float SegmentSelectDistanceThreshold = .1f;
         private int _selectedSegmentIndex = -1;
@@ -20,8 +20,6 @@ namespace Curve.Scripts.Editor
             {
                 _creator.CreatePath();
             }
-
-            _path = _creator.path;
         }
 
         public override void OnInspectorGUI()
@@ -54,34 +52,33 @@ namespace Curve.Scripts.Editor
             
             Undo.RecordObject(_creator, "Create new");
             _creator.CreatePath();
-            _path = _creator.path;
         }
 
         private void ClosedPathToggle()
         {
-            var isClosed = GUILayout.Toggle(_path.IsClosed, "Closed");
+            var isClosed = GUILayout.Toggle(Path.IsClosed, "Closed");
             
-            if (isClosed == _path.IsClosed) return;
+            if (isClosed == Path.IsClosed) return;
             
             Undo.RecordObject(_creator, "Toggle closed");
-            _path.IsClosed = isClosed;
+            Path.IsClosed = isClosed;
         }
 
         private void AutoSetControlPointsToggle()
         {
-            var autoSetControlPoints = GUILayout.Toggle(_path.AutoSetControlPoints, "Auto Set Control Points");
+            var autoSetControlPoints = GUILayout.Toggle(Path.AutoSetControlPoints, "Auto Set Control Points");
 
-            if (autoSetControlPoints == _path.AutoSetControlPoints) return;
+            if (autoSetControlPoints == Path.AutoSetControlPoints) return;
             
             Undo.RecordObject(_creator, "Toggle auto set controls");
-            _path.AutoSetControlPoints = autoSetControlPoints;
+            Path.AutoSetControlPoints = autoSetControlPoints;
         }
 
         #endregion
-        
-        
 
-        private void Input()
+        #region Input
+
+         private void Input()
         {
             var guiEvent = Event.current;
 
@@ -102,12 +99,12 @@ namespace Curve.Scripts.Editor
                 if (_selectedSegmentIndex != -1)
                 {
                     Undo.RecordObject(_creator, "Split segment");
-                    _path.SplitSegment(mousePos, _selectedSegmentIndex);
+                    Path.SplitSegment(mousePos, _selectedSegmentIndex);
                 }
-                else if(!_path.IsClosed)
+                else if(!Path.IsClosed)
                 {
                     Undo.RecordObject(_creator, "Add segment");
-                    _path.AddSegment(mousePos);
+                    Path.AddSegment(mousePos);
                 }
               
             }
@@ -117,12 +114,12 @@ namespace Curve.Scripts.Editor
         {
             if (guiEvent.type == EventType.MouseDown && guiEvent.button == 1)
             {
-                var minDistanceToAnchor = .05f;
+                var minDistanceToAnchor = _creator.anchorDiameter * .5f;
                 var closestAnchorIndex = -1;
 
-                for (var i = 0; i < _path.NumberOfPoints; i += 3)
+                for (var i = 0; i < Path.NumberOfPoints; i += 3)
                 {
-                    var distance = Vector2.Distance(mousePos, _path[i]);
+                    var distance = Vector2.Distance(mousePos, Path[i]);
                     if (distance < minDistanceToAnchor)
                     {
                         minDistanceToAnchor = distance;
@@ -133,85 +130,111 @@ namespace Curve.Scripts.Editor
                 if (closestAnchorIndex != -1)
                 {
                     Undo.RecordObject(_creator, "Delete segment");
-                    _path.DeleteSegment(closestAnchorIndex);
+                    Path.DeleteSegment(closestAnchorIndex);
                 }
             }
         }
 
         private void SplitSegmentCheck(Event guiEvent, Vector2 mousePos)
         {
-            if (guiEvent.type == EventType.MouseMove)
+            if (guiEvent.type != EventType.MouseMove) return;
+            
+            var minDistanceToSegment = SegmentSelectDistanceThreshold;
+            var newSelectedSegmentIndex = -1;
+
+            for (var i = 0; i < Path.NumberOfSegments; i++)
             {
-                var minDistanceToSegment = SegmentSelectDistanceThreshold;
-                var newSelectedSegmentIndex = -1;
+                var points = Path.GetPointsInSegment(i);
 
-                for (var i = 0; i < _path.NumberOfSegments; i++)
+                var distance =
+                    HandleUtility.DistancePointBezier(
+                        mousePos,
+                        points[0],
+                        points[3],
+                        points[1],
+                        points[2]);
+
+                if (!(distance < minDistanceToSegment)) continue;
+                
+                minDistanceToSegment = distance;
+                newSelectedSegmentIndex = i;
+            }
+
+            if (newSelectedSegmentIndex == _selectedSegmentIndex) return;
+            
+            _selectedSegmentIndex = newSelectedSegmentIndex;
+            HandleUtility.Repaint();
+        }
+
+        #endregion
+
+        #region Draw
+
+         private void Draw()
+        {
+            for (var i = 0; i < Path.NumberOfSegments; i++)
+            {
+                var points = Path.GetPointsInSegment(i);
+
+                DrawControlPointLines(points);
+                
+                DrawBezierLines(i, points);
+            }
+
+            DrawAnchorAndControlPoints();
+        }
+
+        private void DrawAnchorAndControlPoints()
+        {
+            for (var i = 0; i < Path.NumberOfPoints; i++)
+            {
+                if (i % 3 == 0 || _creator.displayControlPoints)
                 {
-                    var points = _path.GetPointsInSegment(i);
+                    Handles.color = (i % 3 == 0) ? _creator.anchorCol : _creator.cpCol;
+                    var handleSize = (i % 3 == 0) ? _creator.anchorDiameter : _creator.controlPointDiameter;
+                    Vector2 newPos = Handles.FreeMoveHandle(
+                        Path[i],
+                        Quaternion.identity,
+                        handleSize,
+                        Vector2.zero,
+                        Handles.CylinderHandleCap);
 
-                    var distance =
-                        HandleUtility.DistancePointBezier(
-                            mousePos,
-                            points[0],
-                            points[3],
-                            points[1],
-                            points[2]);
-
-                    if (distance < minDistanceToSegment)
+                    if (Path[i] != newPos)
                     {
-                        minDistanceToSegment = distance;
-                        newSelectedSegmentIndex = i;
+                        Undo.RecordObject(_creator, "Move Point");
+                        Path.MovePoint(i, newPos);
                     }
                 }
-
-                if (newSelectedSegmentIndex != _selectedSegmentIndex)
-                {
-                    _selectedSegmentIndex = newSelectedSegmentIndex;
-                    HandleUtility.Repaint();
-                }
             }
         }
 
-        private void Draw()
+        private void DrawControlPointLines(Vector2[] points)
         {
-            for (var i = 0; i < _path.NumberOfSegments; i++)
-            {
-                Vector2[] points = _path.GetPointsInSegment(i);
-                
-                Handles.color = Color.black;
-                Handles.DrawLine(points[1], points[0]);
-                Handles.DrawLine(points[2], points[3]);
-
-                Color segmentColor = (i == _selectedSegmentIndex && Event.current.shift) ? Color.red : Color.green;
-                
-                Handles.DrawBezier(
-                    points[0], 
-                    points[3], 
-                    points[1], 
-                    points[2], 
-                    segmentColor, 
-                    null, 
-                    2);
-                
-            }
+            if (!_creator.displayControlPoints) return;
             
-            
-            Handles.color = Color.red;
-            for (var i = 0; i < _path.NumberOfPoints; i++)
-            {
-                Vector2 newPos = Handles.FreeMoveHandle(
-                    _path[i], 
-                    Quaternion.identity, 
-                    .1f, 
-                    Vector2.zero,
-                    Handles.CylinderHandleCap);
-
-                if (_path[i] != newPos)
-                {
-                    Undo.RecordObject(_creator, "Move Point");
-                    _path.MovePoint(i, newPos);
-                }
-            }
+            Handles.color = Color.black;
+            Handles.DrawLine(points[1], points[0]);
+            Handles.DrawLine(points[2], points[3]);
         }
+
+        private void DrawBezierLines(int i, Vector2[] points)
+        {
+            var segmentColor = (i == _selectedSegmentIndex && Event.current.shift)
+                ? _creator.selectedSegmentCol
+                : _creator.segmentCol;
+
+            Handles.DrawBezier(
+                points[0],
+                points[3],
+                points[1],
+                points[2],
+                segmentColor,
+                null,
+                2);
+        }
+
+        #endregion
+
+       
     }
 }

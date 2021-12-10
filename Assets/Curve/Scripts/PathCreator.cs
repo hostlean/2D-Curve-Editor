@@ -8,6 +8,16 @@ namespace Curve
         [HideInInspector]
         public Path path;
 
+        public Color anchorCol = Color.red;
+        public Color cpCol = Color.white;
+        public Color segmentCol = Color.green;
+        public Color selectedSegmentCol = Color.yellow;
+
+        public float anchorDiameter = .1f;
+        public float controlPointDiameter = .075f;
+
+        public bool displayControlPoints = true;
+
         private Transform _transform;
 
         private void Awake()
@@ -18,6 +28,11 @@ namespace Curve
         public void CreatePath()
         {
             path = new Path(transform.position);
+        }
+
+        private void Reset()
+        {
+            CreatePath();
         }
     }
 }
