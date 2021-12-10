@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using Curve.Scripts._2D;
 using UnityEngine;
 
 namespace Curve.Scripts
@@ -7,7 +8,7 @@ namespace Curve.Scripts
     [Serializable]
     public class Path
     {
-        [SerializeField] [HideInInspector] private List<Vector2> points;
+        [SerializeField] [HideInInspector] private List<Vector3> points;
         [SerializeField] [HideInInspector] private bool _isClosed;
         [SerializeField] [HideInInspector] private bool _autoSetControlPoints;
 
@@ -15,7 +16,7 @@ namespace Curve.Scripts
 
         public int NumberOfPoints => points.Count;
 
-        public Vector2 this[int i] => points[i];
+        public Vector3 this[int i] => points[i];
 
         public bool AutoSetControlPoints
         {
@@ -68,20 +69,20 @@ namespace Curve.Scripts
             }
         }
 
-        public Path(Vector2 center)
+        public Path(Vector3 center)
         {
-            points = new List<Vector2>
+            points = new List<Vector3>
             {
-                center + Vector2.left,
-                center + (Vector2.left + Vector2.up) * .5f,
-                center + (Vector2.right + Vector2.down) * .5f,
-                center + Vector2.right
+                center + Vector3.left,
+                center + (Vector3.left + Vector3.up) * .5f,
+                center + (Vector3.right + Vector3.down) * .5f,
+                center + Vector3.right
             };
         }
 
         #region Segment Methods
 
-        public void AddSegment(Vector2 anchorPos)
+        public void AddSegment(Vector3 anchorPos)
         {
             var lastPointIndex = points.Count - 1;
             var secondFromLastIndex = points.Count - 2;
@@ -98,9 +99,9 @@ namespace Curve.Scripts
             }
         }
 
-        public void SplitSegment(Vector2 anchorPos, int segmentIndex)
+        public void SplitSegment(Vector3 anchorPos, int segmentIndex)
         {
-            points.InsertRange(segmentIndex*3+2, new Vector2[]{Vector2.zero, anchorPos, Vector2.zero});
+            points.InsertRange(segmentIndex*3+2, new Vector3[]{Vector3.zero, anchorPos, Vector3.zero});
 
             if (_autoSetControlPoints)
             {
@@ -136,9 +137,9 @@ namespace Curve.Scripts
             }
         }
 
-        public Vector2[] GetPointsInSegment(int segmentIndex)
+        public Vector3[] GetPointsInSegment(int segmentIndex)
         {
-            return new Vector2[]
+            return new Vector3[]
             {
                 points[segmentIndex * 3], 
                 points[segmentIndex * 3 + 1], 
@@ -150,9 +151,9 @@ namespace Curve.Scripts
         #endregion
 
 
-        public Vector2[] CalculateEvenlySpacedPoints(float spacing, float resolution = 1)
+        public Vector3[] CalculateEvenlySpacedPoints(float spacing, float resolution = 1)
         {
-            var evenlySpacedPoints = new List<Vector2>();
+            var evenlySpacedPoints = new List<Vector3>();
             
             evenlySpacedPoints.Add(points[0]);
             var previousPoint = points[0];
@@ -164,11 +165,11 @@ namespace Curve.Scripts
                 var p = GetPointsInSegment(segmentIndex);
 
                 var controlNetLength = 
-                    Vector2.Distance(p[0], p[1]) + 
-                    Vector2.Distance(p[1], p[2]) +
-                    Vector2.Distance(p[2], p[3]);
+                    Vector3.Distance(p[0], p[1]) + 
+                    Vector3.Distance(p[1], p[2]) +
+                    Vector3.Distance(p[2], p[3]);
 
-                var estimatedCurveLength = Vector2.Distance(p[0], p[3]) + controlNetLength / 2f;
+                var estimatedCurveLength = Vector3.Distance(p[0], p[3]) + controlNetLength / 2f;
 
                 var divisions = Mathf.CeilToInt(estimatedCurveLength * resolution * 10);
 
@@ -177,7 +178,7 @@ namespace Curve.Scripts
                 {
                     t += 1f/divisions;
                     var pointOnCurve = Bezier.EvaluateCubic(p[0], p[1], p[2], p[3], t);
-                    distanceSinceLastEvenPoint += Vector2.Distance(previousPoint, pointOnCurve);
+                    distanceSinceLastEvenPoint += Vector3.Distance(previousPoint, pointOnCurve);
 
                     while (distanceSinceLastEvenPoint >= spacing)
                     {
@@ -199,7 +200,7 @@ namespace Curve.Scripts
             return evenlySpacedPoints.ToArray();
         }
 
-        public void MovePoint(int pointIndex, Vector2 targetPos)
+        public void MovePoint(int pointIndex, Vector3 targetPos)
         {
             var deltaMove = targetPos - points[pointIndex];
 
@@ -261,7 +262,7 @@ namespace Curve.Scripts
         private void AutoSetAnchorControlPoints(int anchorIndex)
         {
             var anchorPos = points[anchorIndex];
-            var direction = Vector2.zero;
+            var direction = Vector3.zero;
 
             var neighbourDistances = new float[2];
             
@@ -303,7 +304,5 @@ namespace Curve.Scripts
         {
             return (i + points.Count) % points.Count;
         }
-
-       
     }
 }

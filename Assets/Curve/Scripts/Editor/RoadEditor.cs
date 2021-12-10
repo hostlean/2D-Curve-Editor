@@ -1,4 +1,3 @@
-﻿using System;
 using Curve.Scripts.Examples;
 using UnityEngine;
 using UnityEditor;

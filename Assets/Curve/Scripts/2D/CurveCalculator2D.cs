@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Curve.Scripts
+namespace Curve.Scripts._2D
 {
     public static class CurveCalculator2D
     {

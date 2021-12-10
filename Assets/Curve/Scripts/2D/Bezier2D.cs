@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-namespace Curve.Scripts
+namespace Curve.Scripts._2D
 {
-    public static class Bezier
+    public static class Bezier2D
     {
         public static Vector2 EvaluateQuadratic(Vector2 a, Vector2 b, Vector2 c, float time)
         {

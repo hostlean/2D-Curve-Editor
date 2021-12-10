@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 
-namespace Curve.Scripts
+namespace Curve.Scripts._2D
 {
-    public class PathCreator : MonoBehaviour
+    public class PathCreator2D : MonoBehaviour
     {
         [HideInInspector]
-        public Path path;
+        public Path2D path2D;
 
         public Color anchorCol = Color.red;
         public Color cpCol = Color.white;
@@ -26,7 +26,7 @@ namespace Curve.Scripts
 
         public void CreatePath()
         {
-            path = new Path(transform.position);
+            path2D = new Path2D(transform.position);
         }
 
         private void Reset()

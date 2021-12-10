@@ -1,12 +1,12 @@
-using Curve.Scripts._2D;
+﻿using Curve.Scripts._2D;
 using UnityEngine;
 
 namespace Curve.Scripts.Examples
 {
-    [RequireComponent(typeof(PathCreator))]
+    [RequireComponent(typeof(PathCreator2D))]
     [RequireComponent(typeof(MeshFilter))]
     [RequireComponent(typeof(MeshRenderer))]
-    public class RoadCreator : MonoBehaviour
+    public class RoadCreator2D : MonoBehaviour
     {
         [Range(.05f, 1.5f)]
         public float spacing = 1f;
@@ -18,7 +18,7 @@ namespace Curve.Scripts.Examples
 
         public void UpdateRoad()
         {
-            var path = GetComponent<PathCreator>().path;
+            var path = GetComponent<PathCreator2D>().path2D;
             var points = path.CalculateEvenlySpacedPoints(spacing);
 
             var meshFilter = GetComponent<MeshFilter>();
@@ -29,7 +29,7 @@ namespace Curve.Scripts.Examples
             meshRenderer.sharedMaterial.mainTextureScale = new Vector2(1, textureRepeat);
         }
         
-        private Mesh CreateRoadMesh(Vector3[] points, bool isClosed)
+        private Mesh CreateRoadMesh(Vector2[] points, bool isClosed)
         {
             var verts = new Vector3[points.Length * 2];
 
@@ -44,7 +44,7 @@ namespace Curve.Scripts.Examples
 
             for (var i = 0; i < points.Length; i++)
             {
-                var forward = Vector3.zero;
+                var forward = Vector2.zero;
 
                 if (i < points.Length - 1 || isClosed)
                 {
@@ -57,7 +57,7 @@ namespace Curve.Scripts.Examples
                 }
                 forward.Normalize();
 
-                var left = new Vector3(-forward.y, forward.z, forward.x);
+                var left = new Vector2(-forward.y, forward.x);
 
                 verts[vertexIndex] = points[i] + left * roadWidth * .5f;
                 verts[vertexIndex + 1] = points[i] -left * roadWidth * .5f;
