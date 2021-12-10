@@ -13,6 +13,8 @@ namespace Curve.Scripts.Examples
 
         public bool autoUpdate;
 
+        public float tiling = 1f;
+
         public void UpdateRoad()
         {
             var path = GetComponent<PathCreator>().path;
@@ -20,6 +22,10 @@ namespace Curve.Scripts.Examples
 
             var meshFilter = GetComponent<MeshFilter>();
             meshFilter.mesh = CreateRoadMesh(points, path.IsClosed);
+
+            int textureRepeat = Mathf.RoundToInt(tiling * points.Length * spacing * .05f);
+            var meshRenderer = GetComponent<MeshRenderer>();
+            meshRenderer.sharedMaterial.mainTextureScale = new Vector2(1, textureRepeat);
         }
         
         private Mesh CreateRoadMesh(Vector2[] points, bool isClosed)
